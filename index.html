@@ -1,0 +1,70 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cupcake App</title>
+</head>
+<body>
+  <h1>Add a New Cupcake</h1>
+  <form id="cupcake-form">
+    <label for="flavor">Flavor:</label>
+    <input type="text" id="flavor" name="flavor" required><br>
+
+    <label for="size">Size:</label>
+    <input type="text" id="size" name="size" required><br>
+
+    <label for="rating">Rating:</label>
+    <input type="number" id="rating" name="rating" step="0.1" min="0" max="10" required><br>
+
+    <label for="image">Image URL (optional):</label>
+    <input type="url" id="image" name="image"><br>
+
+    <button type="submit">Add Cupcake</button>
+  </form>
+
+  <h2>All Cupcakes</h2>
+  <ul id="cupcake-list"></ul>
+
+  <script>
+    async function getCupcakes() {
+      const response = await fetch('/api/cupcakes');
+      const data = await response.json();
+      return data.cupcakes;
+    }
+
+    async function renderCupcakes() {
+      const cupcakes = await getCupcakes();
+      const cupcakeList = document.getElementById('cupcake-list');
+      cupcakeList.innerHTML = '';
+      cupcakes.forEach(cupcake => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${cupcake.flavor}, Size: ${cupcake.size}, Rating: ${cupcake.rating}`;
+        cupcakeList.appendChild(listItem);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const cupcakeForm = document.getElementById('cupcake-form');
+      cupcakeForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        const formData = new FormData(cupcakeForm);
+        const response = await fetch('/api/cupcakes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.fromEntries(formData)),
+        });
+        if (response.ok) {
+          renderCupcakes();
+          cupcakeForm.reset();
+        } else {
+          alert('Failed to add cupcake');
+        }
+      });
+
+      renderCupcakes();
+    });
+  </script>
+</body>
+</html>
